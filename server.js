@@ -1,21 +1,40 @@
 var http = require('http');
 
 var server = http.createServer(function(req, res) {
-  if (req.url === '/time' || req.url === '/') {
-    res.writeHead(200, {
-      "Content-Type": "text/plain"
-    });
-    res.write(new Date().toString());
-    res.end();
-  }
-
   var reqPath = req.url.split('/');
-  if (reqPath[1] === 'greet' && reqPath[2]) {
-  res.writeHead(200, {
-    "Content-Type": "text/plain"
-  });
-  res.write('Hello ' + reqPath[2]);
-  res.end();
+  if (req.method === 'GET') {
+    if (reqPath[1] === 'time' || reqPath[1] === '') {
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.write(new Date().toString());
+      return res.end();
+    }
+
+    if (reqPath[1] === 'greet') {
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.write('Hello ' + reqPath[2]);
+      return res.end();
+    }
+  } else if (req.method === 'POST') {
+    if (reqPath[1] === 'greet') {
+      var reqData = '';
+      req.on('data', function(chunk) {
+          reqData += chunk;
+      });
+
+      req.on('end', function() {
+        res.writeHead(200, { "Content-Type": "text/plain" });
+        JSON.parse(reqData);
+        console.log(reqData.name);
+        res.write('hello ' + reqData.name);
+        return res.end();
+      });
+    }
+  } else {
+    res.writeHead(404, {
+      "Content-Type": "plain/text"
+    });
+    res.write('404');
+    return res.end();
   }
 });
 
